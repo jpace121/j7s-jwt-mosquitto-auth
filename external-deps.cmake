@@ -13,7 +13,7 @@ ExternalProject_Add(ep_jwt-cpp
   BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp
 )
 list (APPEND EXTRA_CMAKE_ARGS
-  -Djwt-cpp_DIR=${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp
+  -Djwt-cpp_DIR=${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp -Djwt-cpp_INCLUDE_DIR=${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp/include
 )
 
 ExternalProject_Add (ep_jwp-mosquitto-plugin

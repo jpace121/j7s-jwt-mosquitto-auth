@@ -17,5 +17,5 @@ find_package(OpenSSL)
 add_library(jwp-plugin SHARED src/jwp-plugin.cpp)
 
 add_executable(jwt-example src/jwt-example.cpp)
-target_include_directories(jwt-example PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp/include)
+target_include_directories(jwt-example PRIVATE ${jwt-cpp_INCLUDE_DIR})
 target_link_libraries(jwt-example OpenSSL::Crypto)
