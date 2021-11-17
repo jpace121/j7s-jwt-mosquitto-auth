@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 
 # https://github.com/Sarcasm/cmake-superbuild/
 option (USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
@@ -14,7 +14,15 @@ endif()
 find_package(jwt-cpp)
 find_package(OpenSSL)
 
-add_library(jwp-plugin SHARED src/jwp-plugin.cpp)
+set(CMAKE_CXX_STANDARD 20)
+
+add_library(jwp-plugin SHARED src/jwp-plugin.cpp src/AuthList.cpp src/Authorizer.cpp)
+target_include_directories(jwp-plugin PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  ${jwt-cpp_INCLUDE_DIR}
+)
+target_link_libraries(jwp-plugin OpenSSL::Crypto)
 
 add_executable(jwt-example src/jwt-example.cpp)
 target_include_directories(jwt-example PRIVATE ${jwt-cpp_INCLUDE_DIR})
