@@ -23,7 +23,3 @@ target_include_directories(jwp-plugin PUBLIC
   ${jwt-cpp_INCLUDE_DIR}
 )
 target_link_libraries(jwp-plugin OpenSSL::Crypto)
-
-add_executable(jwt-example src/jwt-example.cpp)
-target_include_directories(jwt-example PRIVATE ${jwt-cpp_INCLUDE_DIR})
-target_link_libraries(jwt-example OpenSSL::Crypto)
