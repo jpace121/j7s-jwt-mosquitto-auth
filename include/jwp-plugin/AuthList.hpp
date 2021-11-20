@@ -15,6 +15,7 @@
 #include <forward_list>
 #include <string>
 
+// A list with easily checkable contents.
 class AuthList
 {
 public:

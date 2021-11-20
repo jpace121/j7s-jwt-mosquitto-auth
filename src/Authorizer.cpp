@@ -63,7 +63,7 @@ bool Authorizer::add(const std::string& token, const std::string& username)
     }
     catch(jwt::error::token_verification_exception& exception)
     {
-        std::cout << exception.what() << std::endl;
+        std::cerr << exception.what() << std::endl;
         return false;
     }
     auto claims = decoded_token.get_payload_claims();
@@ -71,19 +71,19 @@ bool Authorizer::add(const std::string& token, const std::string& username)
     // Check username matches.
     if(not claims.contains("upn"))
     {
-        std::cout << "Missing upn." << std::endl;
+        std::cerr << "Missing upn." << std::endl;
         return false;
     }
     if(claims["upn"].as_string() != username)
     {
-        std::cout << "Wrong username." << std::endl;
+        std::cerr << "Wrong username." << std::endl;
         return false;
     }
 
     // Check for mqtt-write claim value.
     if(not (claims.contains("mqtt-write") and claims.contains("mqtt-read")))
     {
-        std::cout << "Missing mqtt-write or mqtt-read." << std::endl;
+        std::cerr << "Missing mqtt-write or mqtt-read." << std::endl;
         return false;
     }
 
@@ -91,7 +91,7 @@ bool Authorizer::add(const std::string& token, const std::string& username)
     bool can_read = claims["mqtt-read"].as_bool();
     if(not (can_write or can_read))
     {
-        std::cout << "Can't write or can't read." << std::endl;
+        std::cerr << "Can't write or can't read." << std::endl;
         return false;
     }
 

@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Mosquitto authentication plugin that using Authorizer to authorize
+// users using jwts.
+
 extern "C" {
     #include "mosquitto.h"
     #include "mosquitto_broker.h"

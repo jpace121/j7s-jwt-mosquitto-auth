@@ -23,8 +23,7 @@ void AuthList::add(const std::string& username)
 {
     // Is the username already in the list?
     // If not add it.
-    const auto found = std::find(std::begin(_allowedUsernames), std::end(_allowedUsernames), username);
-    if(found == std::end(_allowedUsernames))
+    if(not confirm(username))
     {
         _allowedUsernames.emplace_front(username);
     }
@@ -32,8 +31,9 @@ void AuthList::add(const std::string& username)
 
 void AuthList::remove(const std::string& username)
 {
-    const auto found = std::find(std::begin(_allowedUsernames), std::end(_allowedUsernames), username);
-    if(found != std::end(_allowedUsernames))
+    // Is the user in the list?
+    // Is so, remove it,
+    if(confirm(username))
     {
         _allowedUsernames.remove(username);
     }
@@ -41,6 +41,7 @@ void AuthList::remove(const std::string& username)
 
 bool AuthList::confirm(const std::string& username)
 {
+    // Is the user in the list?
     const auto found = std::find(std::begin(_allowedUsernames), std::end(_allowedUsernames), username);
     if(found != std::end(_allowedUsernames))
     {

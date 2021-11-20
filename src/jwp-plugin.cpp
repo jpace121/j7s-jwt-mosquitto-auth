@@ -50,25 +50,22 @@ int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier, void **userdata, st
         if(key == "public_key")
         {
             const auto key = Authorizer::read_key(std::string(options[index].value));
-            if(key)
+            if(not key or key->empty())
             {
-                public_key = *key;
-            }
-            else
-            {
+                mosquitto_log_printf(MOSQ_LOG_ERR, "Could not read public key.");
                 return MOSQ_ERR_INVAL;
             }
+            public_key = *key;
         }
         else if(key == "issuer")
         {
             issuer = std::string(options[index].value);
+            if(issuer.empty())
+            {
+                mosquitto_log_printf(MOSQ_LOG_ERR, "issuer not set.");
+                return MOSQ_ERR_INVAL;
+            }
         }
-    }
-
-    if(public_key.empty() or issuer.empty())
-    {
-        mosquitto_log_printf(MOSQ_LOG_ERR, "public_key or issue not set.");
-        return MOSQ_ERR_INVAL;
     }
 
     authorizer = std::make_unique<Authorizer>(public_key, issuer);

@@ -15,11 +15,10 @@
 
 #include <jwp-plugin/AuthList.hpp>
 
-#include <jwt-cpp/jwt.h>
-
 #include <optional>
 #include <string>
 
+// Autenticates a user using jwts.
 class Authorizer
 {
 public:
