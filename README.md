@@ -1,7 +1,9 @@
 # j7s-jwt-mosquitto-auth
 
-Authentication using JWTs for the mosquitto mqqt broker.
+Authentication using JWTs for the mosquitto mqtt broker.
 
 ## Dependencies
+```
 sudo apt install mosquitto-dev g++ cmake libmosquitto-dev mosquitto-clients
 sudo apt install openssl libssl-dev
+```
