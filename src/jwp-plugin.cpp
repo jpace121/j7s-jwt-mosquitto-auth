@@ -39,6 +39,7 @@ int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier, void **userdata, st
 
     if(option_count != 2)
     {
+        mosquitto_log_printf(MOSQ_LOG_ERR, "Missing an option. Found: %d", option_count);
         return MOSQ_ERR_INVAL;
     }
 

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-/usr/sbin/mosquitto -c $PWD/mosquitto.conf
+/usr/local/sbin/mosquitto -v -c $PWD/mosquitto.conf
