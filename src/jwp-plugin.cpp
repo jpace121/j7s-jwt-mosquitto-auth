@@ -102,7 +102,13 @@ int jwp_auth_basic_auth_callback(int event, void *event_data, void *userdata)
 
     struct mosquitto_evt_basic_auth *auth_data = static_cast<struct mosquitto_evt_basic_auth*>(event_data);
 
-    if(!auth_data->username or !auth_data->password)
+    if(!auth_data->username)
+    {
+        // We need a username to do anything.
+        return MOSQ_ERR_PLUGIN_DEFER;
+    }
+
+    if(!auth_data->password)
     {
         authorizer->add_unknown(std::string(auth_data->username));
         return MOSQ_ERR_PLUGIN_DEFER;

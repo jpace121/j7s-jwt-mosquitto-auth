@@ -46,7 +46,7 @@ void Authorizer::add_unknown(const std::string& username)
 
 bool Authorizer::is_unknown(const std::string& username)
 {
-    return _unknownList.confirm(username);
+    return (username.empty() or _unknownList.confirm(username));
 }
 
 bool Authorizer::add(const std::string& token, const std::string& username)
