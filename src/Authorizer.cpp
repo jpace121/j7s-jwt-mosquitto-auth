@@ -11,8 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include <jwp-plugin/Authorizer.hpp>
-#include <jwp-plugin/AuthList.hpp>
+#include <j7s-plugin/Authorizer.hpp>
+#include <j7s-plugin/AuthList.hpp>
 
 #include <jwt-cpp/jwt.h>
 

@@ -13,7 +13,7 @@
 // limitations under the License.
 #pragma once
 
-#include <jwp-plugin/AuthList.hpp>
+#include <j7s-plugin/AuthList.hpp>
 
 #include <optional>
 #include <string>

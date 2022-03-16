@@ -28,6 +28,6 @@ extern "C" {
     int mosquitto_plugin_cleanup(void *userdata, struct mosquitto_opt *options, int option_count);
 }
 // My functions
-int jwp_auth_basic_auth_callback(int event, void *event_data, void *userdata);
-int jwp_acl_check_callback(int event, void *event_data, void *userdata);
-int jwp_disconnect_callback(int event, void *event_data, void *userdata);
+int j7s_auth_basic_auth_callback(int event, void *event_data, void *userdata);
+int j7s_acl_check_callback(int event, void *event_data, void *userdata);
+int j7s_disconnect_callback(int event, void *event_data, void *userdata);

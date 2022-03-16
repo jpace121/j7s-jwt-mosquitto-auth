@@ -11,8 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include <jwp-plugin/jwp-plugin.h>
-#include <jwp-plugin/Authorizer.hpp>
+#include <j7s-plugin/j7s-plugin.h>
+#include <j7s-plugin/Authorizer.hpp>
 #include <string>
 #include <memory>
 
@@ -72,9 +72,9 @@ int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier, void **userdata, st
     authorizer = std::make_unique<Authorizer>(public_key, issuer);
 
     // Register the callbacks.
-	mosquitto_callback_register(plugin_id, MOSQ_EVT_BASIC_AUTH, jwp_auth_basic_auth_callback, NULL, NULL);
-	mosquitto_callback_register(plugin_id, MOSQ_EVT_ACL_CHECK, jwp_acl_check_callback, NULL, NULL);
-    mosquitto_callback_register(plugin_id, MOSQ_EVT_DISCONNECT, jwp_disconnect_callback, NULL, NULL);
+	mosquitto_callback_register(plugin_id, MOSQ_EVT_BASIC_AUTH, j7s_auth_basic_auth_callback, NULL, NULL);
+	mosquitto_callback_register(plugin_id, MOSQ_EVT_ACL_CHECK, j7s_acl_check_callback, NULL, NULL);
+    mosquitto_callback_register(plugin_id, MOSQ_EVT_DISCONNECT, j7s_disconnect_callback, NULL, NULL);
     // May want MOSQ_EVT_RELOAD as well.
 
     return MOSQ_ERR_SUCCESS;
@@ -84,15 +84,15 @@ int mosquitto_plugin_cleanup(void *userdata, struct mosquitto_opt *options, int 
 {
     if(plugin_id)
     {
-        mosquitto_callback_unregister(plugin_id, MOSQ_EVT_BASIC_AUTH, jwp_auth_basic_auth_callback, NULL);
-		mosquitto_callback_unregister(plugin_id, MOSQ_EVT_ACL_CHECK, jwp_acl_check_callback, NULL);
-        mosquitto_callback_unregister(plugin_id, MOSQ_EVT_DISCONNECT, jwp_disconnect_callback, NULL);
+        mosquitto_callback_unregister(plugin_id, MOSQ_EVT_BASIC_AUTH, j7s_auth_basic_auth_callback, NULL);
+		mosquitto_callback_unregister(plugin_id, MOSQ_EVT_ACL_CHECK, j7s_acl_check_callback, NULL);
+        mosquitto_callback_unregister(plugin_id, MOSQ_EVT_DISCONNECT, j7s_disconnect_callback, NULL);
     }
 
     return MOSQ_ERR_SUCCESS;
 }
 
-int jwp_auth_basic_auth_callback(int event, void *event_data, void *userdata)
+int j7s_auth_basic_auth_callback(int event, void *event_data, void *userdata)
 {
     if(not authorizer)
     {
@@ -125,7 +125,7 @@ int jwp_auth_basic_auth_callback(int event, void *event_data, void *userdata)
     }
 }
 
-int jwp_acl_check_callback(int event, void *event_data, void *userdata)
+int j7s_acl_check_callback(int event, void *event_data, void *userdata)
 {
     if(not authorizer)
     {
@@ -156,7 +156,7 @@ int jwp_acl_check_callback(int event, void *event_data, void *userdata)
     }
 }
 
-int jwp_disconnect_callback(int event, void *event_data, void *userdata)
+int j7s_disconnect_callback(int event, void *event_data, void *userdata)
 {
     struct mosquitto_evt_disconnect *disconnect_data = static_cast<struct mosquitto_evt_disconnect*>(event_data);
     const std::string username = std::string(mosquitto_client_username(disconnect_data->client));

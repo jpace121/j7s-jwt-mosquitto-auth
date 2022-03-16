@@ -16,8 +16,8 @@ list (APPEND EXTRA_CMAKE_ARGS
   -Djwt-cpp_DIR=${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp -Djwt-cpp_INCLUDE_DIR=${CMAKE_CURRENT_BINARY_DIR}/jwt-cpp/include
 )
 
-ExternalProject_Add (ep_jwp-mosquitto-plugin
-  PREFIX ep_jwp-mosquitto-plugin
+ExternalProject_Add (ep_j7s-mosquitto-plugin
+  PREFIX ep_j7s-mosquitto-plugin
   DEPENDS ${DEPENDENCIES}
   SOURCE_DIR "${PROJECT_SOURCE_DIR}"
   CMAKE_ARGS -DUSE_SUPERBUILD=OFF ${EXTRA_CMAKE_ARGS}

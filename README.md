@@ -1,4 +1,4 @@
-# j7s-jwt-mosquitto-auth
+# j7s-mosquitto-plugin
 
 Authentication using JWTs for the mosquitto mqtt broker.
 
