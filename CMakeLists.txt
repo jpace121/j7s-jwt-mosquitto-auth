@@ -12,6 +12,7 @@ else()
 endif()
 
 find_package(jwt-cpp)
+find_package(argparse)
 find_package(OpenSSL)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -23,3 +24,11 @@ target_include_directories(j7s-plugin PUBLIC
   ${jwt-cpp_INCLUDE_DIR}
 )
 target_link_libraries(j7s-plugin OpenSSL::Crypto)
+
+add_executable(gen-token src/gen-token.cpp)
+target_include_directories(gen-token PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  ${jwt-cpp_INCLUDE_DIR}
+)
+target_link_libraries(gen-token OpenSSL::Crypto argparse::argparse)
