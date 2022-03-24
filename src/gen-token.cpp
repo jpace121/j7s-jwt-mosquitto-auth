@@ -62,16 +62,16 @@ int main(int argc, char * argv[])
     const std::string can_read = program.get<bool>("--can-read") ? "true" : "false";
     const std::string can_write = program.get<bool>("--can-write") ? "true" : "false";
 
-    const auto expr_time = std::chrono::system_clock::now() +
-                           std::chrono::days(std::stoi(program.get<std::string>("--valid-days")));
+    const auto now = std::chrono::system_clock::now();
+    const auto expr_time =
+        now + std::chrono::days(std::stoi(program.get<std::string>("--valid-days")));
 
     const auto token = gen_token(
         program.get<std::string>("--issuer"),
         program.get<std::string>("--username"),
-        can_read,
-        can_write,
         pub_key.value(),
         priv_key.value(),
+        now,
         expr_time);
 
     std::cout << token;

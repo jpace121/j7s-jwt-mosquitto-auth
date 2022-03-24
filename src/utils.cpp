@@ -32,7 +32,7 @@ std::optional<std::string> read_key(const std::string & key_file)
     return ss.str();
 }
 
-std::tuple<bool, bool> validate(
+bool validate(
     const std::string & token,
     const std::string & username,
     const std::string & issuer,
@@ -50,7 +50,7 @@ std::tuple<bool, bool> validate(
     catch (jwt::error::token_verification_exception & exception)
     {
         std::cerr << exception.what() << std::endl;
-        return std::make_tuple(false, false);
+        return false;
     }
     auto claims = decoded_token.get_payload_claims();
 
@@ -58,42 +58,38 @@ std::tuple<bool, bool> validate(
     if (not claims.contains("upn"))
     {
         std::cerr << "Missing upn." << std::endl;
-        return std::make_tuple(false, false);
+        return false;
     }
     if (claims["upn"].as_string() != username)
     {
         std::cerr << "Wrong username." << std::endl;
-        return std::make_tuple(false, false);
+        return false;
     }
 
     // Check for mqtt-write claim value.
-    if (not(claims.contains("mqtt-write") and claims.contains("mqtt-read")))
+    if (not claims.contains("mqtt"))
     {
-        std::cerr << "Missing mqtt-write or mqtt-read." << std::endl;
-        return std::make_tuple(false, false);
+        std::cerr << "Missing mqtt claim." << std::endl;
+        return false;
     }
 
-    bool can_read = claims["mqtt-read"].as_bool();
-    bool can_write = claims["mqtt-write"].as_bool();
-
-    return std::make_tuple(can_read, can_write);
+    return claims["mqtt"].as_bool();
 }
 
 std::string gen_token(
     const std::string & issuer,
     const std::string & username,
-    const std::string & can_read,
-    const std::string & can_write,
     const std::string & pub_key,
     const std::string & priv_key,
+    const std::chrono::time_point<std::chrono::system_clock> & issue_time,
     const std::chrono::time_point<std::chrono::system_clock> & expr_time)
 {
     const auto token = jwt::create()
                            .set_type("JWT")
                            .set_issuer(issuer)
                            .set_payload_claim("upn", jwt::claim(username))
-                           .set_payload_claim("mqtt-read", jwt::claim(can_read))
-                           .set_payload_claim("mqtt-write", jwt::claim(can_write))
+                           .set_payload_claim("mqtt", jwt::claim(std::string("true")))
+                           .set_issued_at(issue_time)
                            .set_expires_at(expr_time)
                            .sign(jwt::algorithm::rs256(pub_key, priv_key, "", ""));
 

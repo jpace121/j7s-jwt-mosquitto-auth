@@ -1,4 +1,3 @@
-
 // Copyright 2022 James Pace
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +19,7 @@
 
 std::optional<std::string> read_key(const std::string & key_file);
 
-std::tuple<bool, bool> validate(
+bool validate(
     const std::string & token,
     const std::string & username,
     const std::string & issuer,
@@ -29,8 +28,7 @@ std::tuple<bool, bool> validate(
 std::string gen_token(
     const std::string & issuer,
     const std::string & username,
-    const std::string & can_read,
-    const std::string & can_write,
     const std::string & pub_key,
     const std::string & priv_key,
+    const std::chrono::time_point<std::chrono::system_clock> & issue_time,
     const std::chrono::time_point<std::chrono::system_clock> & expr_time);

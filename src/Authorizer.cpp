@@ -34,21 +34,16 @@ bool Authorizer::is_unknown(const std::string & username)
 
 bool Authorizer::add(const std::string & token, const std::string & username)
 {
-    const auto [can_read, can_write] = validate(token, username, _issuer, _pub_key);
-    if (not(can_write or can_read))
+    const auto validated = validate(token, username, _issuer, _pub_key);
+    if (not validated)
     {
-        std::cerr << "Can't write or can't read." << std::endl;
+        std::cerr << "Not validated." << std::endl;
         return false;
     }
 
-    if (can_write)
-    {
-        _writeList.add(username);
-    }
-    if (can_read)
-    {
-        _readList.add(username);
-    }
+    // TODO: Check ACL file to see which one.
+    _writeList.add(username);
+    _readList.add(username);
 
     return true;
 }
