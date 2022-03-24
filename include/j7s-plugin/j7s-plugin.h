@@ -15,19 +15,25 @@
 // Mosquitto authentication plugin that using Authorizer to authorize
 // users using jwts.
 
-extern "C" {
-    #include "mosquitto.h"
-    #include "mosquitto_broker.h"
-    #include "mosquitto_plugin.h"
+extern "C"
+{
+#include "mosquitto.h"
+#include "mosquitto_broker.h"
+#include "mosquitto_plugin.h"
 }
 
 // Stuff we're "exporting" for the dynamic loading.
-extern "C" {
-    int mosquitto_plugin_version(int supported_version_count, const int *supported_versions);
-    int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier, void **userdata, struct mosquitto_opt *options, int option_count);
-    int mosquitto_plugin_cleanup(void *userdata, struct mosquitto_opt *options, int option_count);
+extern "C"
+{
+    int mosquitto_plugin_version(int supported_version_count, const int * supported_versions);
+    int mosquitto_plugin_init(
+        mosquitto_plugin_id_t * identifier,
+        void ** userdata,
+        struct mosquitto_opt * options,
+        int option_count);
+    int mosquitto_plugin_cleanup(void * userdata, struct mosquitto_opt * options, int option_count);
 }
 // My functions
-int j7s_auth_basic_auth_callback(int event, void *event_data, void *userdata);
-int j7s_acl_check_callback(int event, void *event_data, void *userdata);
-int j7s_disconnect_callback(int event, void *event_data, void *userdata);
+int j7s_auth_basic_auth_callback(int event, void * event_data, void * userdata);
+int j7s_acl_check_callback(int event, void * event_data, void * userdata);
+int j7s_disconnect_callback(int event, void * event_data, void * userdata);

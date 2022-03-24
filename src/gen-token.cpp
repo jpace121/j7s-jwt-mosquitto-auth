@@ -12,35 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <argparse/argparse.hpp>
-#include <jwt-cpp/jwt.h>
+#include <j7s-plugin/utils.h>
 
-#include <iostream>
+#include <argparse/argparse.hpp>
 #include <chrono>
-#include <optional>
-#include <string>
-#include <fstream>
-#include <sstream>
 #include <filesystem>
 
-std::optional<std::string> read_key(const std::string& key_file);
-
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
     argparse::ArgumentParser program("gen-token", "0.0.0");
 
-    program.add_argument("--pub-key")
-        .required()
-        .help("Pub key of signer.");
-    program.add_argument("--priv-key")
-        .required()
-        .help("Private key of signer.");
-    program.add_argument("--issuer")
-        .required()
-        .help("Issuer to assign to signed key.");
-    program.add_argument("--username")
-        .required()
-        .help("Username assigned to key.");
+    program.add_argument("--pub-key").required().help("Pub key of signer.");
+    program.add_argument("--priv-key").required().help("Private key of signer.");
+    program.add_argument("--issuer").required().help("Issuer to assign to signed key.");
+    program.add_argument("--username").required().help("Username assigned to key.");
     program.add_argument("--valid-days")
         .required()
         .help("Days from now until the token will be valid.");
@@ -68,7 +53,7 @@ int main(int argc, char *argv[])
     const auto pub_key_file = program.get<std::string>("--pub-key");
     const auto pub_key = read_key(std::filesystem::absolute(pub_key_file));
 
-    if(not pub_key or not priv_key)
+    if (not pub_key or not priv_key)
     {
         std::cerr << "Could not open key!" << std::endl;
         return -2;
@@ -80,29 +65,16 @@ int main(int argc, char *argv[])
     const auto expr_time = std::chrono::system_clock::now() +
                            std::chrono::days(std::stoi(program.get<std::string>("--valid-days")));
 
-    const auto token = jwt::create()
-        .set_type("JWT")
-        .set_issuer(program.get<std::string>("--issuer"))
-        .set_payload_claim("upn", jwt::claim(program.get<std::string>("--username")))
-        .set_payload_claim("mqtt-write", jwt::claim(can_read))
-        .set_payload_claim("mqtt-read", jwt::claim(can_write))
-        .set_expires_at(expr_time)
-        .sign(jwt::algorithm::rs256(pub_key.value(), priv_key.value(), "", ""));
+    const auto token = gen_token(
+        program.get<std::string>("--issuer"),
+        program.get<std::string>("--username"),
+        can_read,
+        can_write,
+        pub_key.value(),
+        priv_key.value(),
+        expr_time);
 
     std::cout << token;
 
     return 0;
-}
-
-std::optional<std::string> read_key(const std::string& key_file)
-{
-    // Read key from file.
-    std::ifstream key_stream(key_file, std::ios::binary);
-    if(not key_stream)
-    {
-        return std::nullopt;
-    }
-    std::stringstream ss;
-    ss << key_stream.rdbuf();
-    return ss.str();
 }
