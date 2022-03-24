@@ -14,36 +14,38 @@
 #include <algorithm>
 #include <j7s-plugin/AuthList.hpp>
 
-AuthList::AuthList() : _allowedUsernames{} {}
+AuthList::AuthList() : _map{} {}
 
-void AuthList::add(const std::string & username)
+void AuthList::add(const std::string & username, const time_T& expr_time)
 {
-    // Is the username already in the list?
-    // If not add it.
-    if (not confirm(username))
-    {
-        _allowedUsernames.emplace_front(username);
-    }
+    // Add the user to the list or update it's expr time if
+    // it's already there.
+    _map[username] = expr_time;
 }
 
 void AuthList::remove(const std::string & username)
 {
-    // Is the user in the list?
-    // Is so, remove it,
-    if (confirm(username))
-    {
-        _allowedUsernames.remove(username);
-    }
+    // Remove the user
+    _map.erase(username);
 }
 
 bool AuthList::confirm(const std::string & username)
 {
-    // Is the user in the list?
-    const auto found =
-        std::find(std::begin(_allowedUsernames), std::end(_allowedUsernames), username);
-    if (found != std::end(_allowedUsernames))
+    // Is the user in the map?
+    const auto iter = _map.find(username);
+
+    if(iter == _map.end())
+    {
+        return false;
+    }
+
+    // Has the token expired?
+    const auto now = std::chrono::system_clock::now();
+    const auto expr_time = std::get<1>(*iter);
+    if(now < expr_time)
     {
         return true;
     }
+
     return false;
 }

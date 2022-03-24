@@ -14,8 +14,12 @@
 #include <j7s-plugin/j7s-plugin.h>
 
 #include <j7s-plugin/Authorizer.hpp>
+
+#include <j7s-plugin/utils.h>
+
 #include <memory>
 #include <string>
+#include <filesystem>
 
 // Mosquitto Globals
 static mosquitto_plugin_id_t * plugin_id = nullptr;
@@ -41,7 +45,7 @@ int mosquitto_plugin_init(
 {
     plugin_id = identifier;
 
-    if (option_count != 2)
+    if (option_count < 3)
     {
         mosquitto_log_printf(MOSQ_LOG_ERR, "Missing an option. Found: %d", option_count);
         return MOSQ_ERR_INVAL;
@@ -49,12 +53,13 @@ int mosquitto_plugin_init(
 
     std::string public_key;
     std::string issuer;
+    std::filesystem::path aclFilePath;
     for (int index = 0; index < option_count; index++)
     {
         const auto key = std::string(options[index].key);
         if (key == "public_key")
         {
-            const auto key = Authorizer::read_key(std::string(options[index].value));
+            const auto key = read_key(std::string(options[index].value));
             if (not key or key->empty())
             {
                 mosquitto_log_printf(MOSQ_LOG_ERR, "Could not read public key.");
@@ -71,9 +76,20 @@ int mosquitto_plugin_init(
                 return MOSQ_ERR_INVAL;
             }
         }
+        else if (key == "acl_file")
+        {
+            std::string acl_file_string = std::string(options[index].value);
+            if (acl_file_string.empty())
+            {
+                mosquitto_log_printf(MOSQ_LOG_ERR, "acl_file not set.");
+                return MOSQ_ERR_INVAL;
+            }
+            aclFilePath = std::filesystem::path(acl_file_string);
+        }
     }
 
-    authorizer = std::make_unique<Authorizer>(public_key, issuer);
+    authorizer = std::make_unique<Authorizer>(
+        public_key, issuer, std::filesystem::absolute(aclFilePath).string());
 
     // Register the callbacks.
     mosquitto_callback_register(

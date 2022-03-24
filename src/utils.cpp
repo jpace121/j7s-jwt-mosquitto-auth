@@ -32,7 +32,7 @@ std::optional<std::string> read_key(const std::string & key_file)
     return ss.str();
 }
 
-bool validate(
+std::tuple<bool, std::chrono::time_point<std::chrono::system_clock>> validate(
     const std::string & token,
     const std::string & username,
     const std::string & issuer,
@@ -50,7 +50,7 @@ bool validate(
     catch (jwt::error::token_verification_exception & exception)
     {
         std::cerr << exception.what() << std::endl;
-        return false;
+        return std::make_tuple(false, std::chrono::system_clock::now());
     }
     auto claims = decoded_token.get_payload_claims();
 
@@ -58,22 +58,34 @@ bool validate(
     if (not claims.contains("upn"))
     {
         std::cerr << "Missing upn." << std::endl;
-        return false;
+        return std::make_tuple(false, std::chrono::system_clock::now());
     }
     if (claims["upn"].as_string() != username)
     {
         std::cerr << "Wrong username." << std::endl;
-        return false;
+        return std::make_tuple(false, std::chrono::system_clock::now());
     }
 
     // Check for mqtt-write claim value.
     if (not claims.contains("mqtt"))
     {
         std::cerr << "Missing mqtt claim." << std::endl;
-        return false;
+        return std::make_tuple(false, std::chrono::system_clock::now());
+    }
+    if(not claims["mqtt"].as_bool())
+    {
+        std::cerr << "Not claiming can do mqtt." << std::endl;
+        return std::make_tuple(false, std::chrono::system_clock::now());
     }
 
-    return claims["mqtt"].as_bool();
+    // Do we have an expiration time?
+    if(not claims.contains("exp"))
+    {
+        std::cerr << "Missing expiration time claim." << std::endl;
+        return std::make_tuple(false, std::chrono::system_clock::now());
+    }
+
+    return std::make_tuple(true, claims["exp"].as_date());
 }
 
 std::string gen_token(

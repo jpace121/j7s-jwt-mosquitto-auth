@@ -1,0 +1,6 @@
+default:
+    can_read: true
+    can_write: false
+jimmy:
+    can_read: true
+    can_write: true

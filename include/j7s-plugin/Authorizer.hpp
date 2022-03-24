@@ -15,6 +15,8 @@
 
 #include <j7s-plugin/AuthList.hpp>
 
+#include <yaml-cpp/yaml.h>
+
 #include <optional>
 #include <string>
 
@@ -22,7 +24,7 @@
 class Authorizer
 {
 public:
-    Authorizer(const std::string& pub_key, const std::string& issuer);
+    Authorizer(const std::string& pub_key, const std::string& issuer, const std::string& aclFilePath);
     static std::optional<std::string> read_key(const std::string& key_file);
     void add_unknown(const std::string& username);
     bool is_unknown(const std::string& username);
@@ -34,6 +36,8 @@ private:
     AuthList _writeList;
     AuthList _readList;
     AuthList _unknownList;
+
+    YAML::Node _aclFile;
 
     std::string _pub_key;
     std::string _issuer;

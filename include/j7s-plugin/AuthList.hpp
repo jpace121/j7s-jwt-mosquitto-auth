@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #pragma once
-#include <forward_list>
+#include <chrono>
+#include <map>
 #include <string>
+
+using time_T = std::chrono::time_point<std::chrono::system_clock>;
 
 // A list with easily checkable contents.
 class AuthList
@@ -21,10 +24,10 @@ class AuthList
 public:
     AuthList();
 
-    void add(const std::string& username);
+    void add(const std::string& username, const time_T& expr_time);
     void remove(const std::string& username);
     bool confirm(const std::string& username);
 
 private:
-    std::forward_list<std::string> _allowedUsernames;
+    std::map<std::string, time_T> _map;
 };
