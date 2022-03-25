@@ -45,36 +45,26 @@ int mosquitto_plugin_init(
 {
     plugin_id = identifier;
 
-    if (option_count < 3)
+    if (option_count < 2)
     {
         mosquitto_log_printf(MOSQ_LOG_ERR, "Missing an option. Found: %d", option_count);
         return MOSQ_ERR_INVAL;
     }
 
-    std::string public_key;
-    std::string issuer;
+    std::filesystem::path keyFilePath;
     std::filesystem::path aclFilePath;
     for (int index = 0; index < option_count; index++)
     {
         const auto key = std::string(options[index].key);
-        if (key == "public_key")
+        if (key == "key_file")
         {
-            const auto key = read_key(std::string(options[index].value));
-            if (not key or key->empty())
+            std::string key_file_string = std::string(options[index].value);
+            if (key_file_string.empty())
             {
-                mosquitto_log_printf(MOSQ_LOG_ERR, "Could not read public key.");
+                mosquitto_log_printf(MOSQ_LOG_ERR, "key_file not set.");
                 return MOSQ_ERR_INVAL;
             }
-            public_key = *key;
-        }
-        else if (key == "issuer")
-        {
-            issuer = std::string(options[index].value);
-            if (issuer.empty())
-            {
-                mosquitto_log_printf(MOSQ_LOG_ERR, "issuer not set.");
-                return MOSQ_ERR_INVAL;
-            }
+            keyFilePath = std::filesystem::path(key_file_string);
         }
         else if (key == "acl_file")
         {
@@ -89,7 +79,8 @@ int mosquitto_plugin_init(
     }
 
     authorizer = std::make_unique<Authorizer>(
-        public_key, issuer, std::filesystem::absolute(aclFilePath).string());
+        std::filesystem::absolute(keyFilePath).string(),
+        std::filesystem::absolute(aclFilePath).string());
 
     // Register the callbacks.
     mosquitto_callback_register(
@@ -187,6 +178,7 @@ int j7s_disconnect_callback(int event, void * event_data, void * userdata)
 {
     struct mosquitto_evt_disconnect * disconnect_data =
         static_cast<struct mosquitto_evt_disconnect *>(event_data);
+
     const std::string username = std::string(mosquitto_client_username(disconnect_data->client));
 
     authorizer->logout(username);

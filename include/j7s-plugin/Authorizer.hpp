@@ -1,4 +1,4 @@
-// Copyright 2021 James Pace
+// Copyright 2021-2022 James Pace
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 class Authorizer
 {
 public:
-    Authorizer(const std::string& pub_key, const std::string& issuer, const std::string& aclFilePath);
+    Authorizer(const std::string& keyFilePath, const std::string& aclFilePath);
     static std::optional<std::string> read_key(const std::string& key_file);
     void add_unknown(const std::string& username);
     bool is_unknown(const std::string& username);
@@ -38,6 +38,7 @@ private:
     AuthList _unknownList;
 
     YAML::Node _aclFile;
+    YAML::Node _keyFile;
 
     std::string _pub_key;
     std::string _issuer;

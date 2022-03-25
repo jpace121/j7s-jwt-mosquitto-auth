@@ -35,14 +35,13 @@ std::optional<std::string> read_key(const std::string & key_file)
 std::tuple<bool, std::chrono::time_point<std::chrono::system_clock>> validate(
     const std::string & token,
     const std::string & username,
-    const std::string & issuer,
     const std::string & pub_key)
 {
     const auto decoded_token = jwt::decode(token);
 
     // Is the token valid?
     const auto verifier =
-        jwt::verify().with_issuer(issuer).allow_algorithm(jwt::algorithm::rs256(pub_key));
+        jwt::verify().allow_algorithm(jwt::algorithm::rs256(pub_key));
     try
     {
         verifier.verify(decoded_token);

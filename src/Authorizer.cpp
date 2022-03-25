@@ -1,4 +1,4 @@
-// Copyright 2021 James Pace
+// Copyright 2021-2022 James Pace
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,30 +18,31 @@
 #include <j7s-plugin/Authorizer.hpp>
 
 #include <tuple>
+#include <filesystem>
 
 // Util.
-std::tuple<bool, bool> checkACL(const YAML::Node& user);
+std::tuple<bool, bool> checkACL(const std::string& user, const YAML::Node& aclFile);
+std::optional<std::string> getKey(const std::string& user, const YAML::Node& keyFile);
 
 // Class implementation.
 Authorizer::Authorizer(
-    const std::string & pub_key, const std::string & issuer, const std::string & aclFilePath) :
-    _pub_key{pub_key}, _issuer{issuer}, _aclFile{aclFilePath}
+    const std::string & keyFilePath, const std::string & aclFilePath) :
+    _keyFile{keyFilePath}, _aclFile{aclFilePath}
 {
 }
 
-void Authorizer::add_unknown(const std::string & username)
-{
-    _unknownList.add(username, time_T::max());
-}
-
-bool Authorizer::is_unknown(const std::string & username)
-{
-    return (username.empty() or _unknownList.confirm(username));
-}
 
 bool Authorizer::add(const std::string & token, const std::string & username)
 {
-    const auto [validated, expr_time] = validate(token, username, _issuer, _pub_key);
+    const auto key = getKey(username, _keyFile);
+
+    if(not key)
+    {
+        std::cerr << "Could not read key for user." << std::endl;
+        return false;
+    }
+
+    const auto [validated, expr_time] = validate(token, username, key.value());
     if (not validated)
     {
         std::cerr << "Not validated." << std::endl;
@@ -49,13 +50,7 @@ bool Authorizer::add(const std::string & token, const std::string & username)
     }
 
     // Check the ACL file.
-    // TODO: Make sure default is in ACL file.
-    if (not _aclFile[username])
-    {
-        const auto checkACL(_aclFile["default"]);
-        return true;
-    }
-    const auto [can_read, can_write] = checkACL(_aclFile[username]);
+    const auto [can_read, can_write] = checkACL(username, _aclFile);
 
     if (can_read)
     {
@@ -87,19 +82,57 @@ void Authorizer::logout(const std::string & username)
     _unknownList.remove(username);
 }
 
-// Util.
-std::tuple<bool, bool> checkACL(const YAML::Node& user)
+void Authorizer::add_unknown(const std::string & username)
 {
+    _unknownList.add(username, time_T::max());
+}
+
+bool Authorizer::is_unknown(const std::string & username)
+{
+    return (username.empty() or _unknownList.confirm(username));
+}
+
+
+// Util.
+std::tuple<bool, bool> checkACL(const std::string& user, const YAML::Node& aclFile)
+{
+    // TODO: Make sure default exists.
+    YAML::Node userDict;
+    if(aclFile[user])
+    {
+        userDict = aclFile[user];
+    }
+    else
+    {
+        userDict = aclFile["default"];
+    }
+
     bool can_read = false;
     bool can_write = false;
-    if(user["can_read"] and user["can_read"].as<bool>())
+    if(userDict["can_read"] and userDict["can_read"].as<bool>())
     {
         can_read = true;
     }
-    if(user["can_write"] and user["can_write"].as<bool>())
+    if(userDict["can_write"] and userDict["can_write"].as<bool>())
     {
         can_write = true;
     }
 
     return std::make_tuple(can_read, can_write);
+}
+
+std::optional<std::string> getKey(const std::string& user, const YAML::Node& keyFile)
+{
+    // TODO: Make sure default exists.
+    std::filesystem::path pathToKey;
+    if(keyFile[user])
+    {
+        pathToKey = std::filesystem::path(keyFile[user].as<std::string>());
+    }
+    else
+    {
+        pathToKey = std::filesystem::path(keyFile["default"].as<std::string>());
+    }
+
+    return read_key(std::filesystem::absolute(pathToKey).string());
 }
