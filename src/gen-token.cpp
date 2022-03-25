@@ -18,13 +18,12 @@
 #include <chrono>
 #include <filesystem>
 
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
     argparse::ArgumentParser program("gen-token", "0.0.0");
 
     program.add_argument("--pub-key").required().help("Pub key of signer.");
     program.add_argument("--priv-key").required().help("Private key of signer.");
-    program.add_argument("--issuer").required().help("Issuer to assign to signed key.");
     program.add_argument("--username").required().help("Username assigned to key.");
     program.add_argument("--valid-days")
         .required()
@@ -41,7 +40,7 @@ int main(int argc, char * argv[])
     {
         program.parse_args(argc, argv);
     }
-    catch (const std::runtime_error & err)
+    catch (const std::runtime_error &err)
     {
         std::cerr << err.what() << std::endl;
         std::cerr << program;
@@ -67,12 +66,7 @@ int main(int argc, char * argv[])
         now + std::chrono::days(std::stoi(program.get<std::string>("--valid-days")));
 
     const auto token = gen_token(
-        program.get<std::string>("--issuer"),
-        program.get<std::string>("--username"),
-        pub_key.value(),
-        priv_key.value(),
-        now,
-        expr_time);
+        program.get<std::string>("--username"), pub_key.value(), priv_key.value(), now, expr_time);
 
     std::cout << token;
 

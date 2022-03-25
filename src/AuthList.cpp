@@ -16,25 +16,25 @@
 
 AuthList::AuthList() : _map{} {}
 
-void AuthList::add(const std::string & username, const time_T& expr_time)
+void AuthList::add(const std::string &username, const time_T &expr_time)
 {
     // Add the user to the list or update it's expr time if
     // it's already there.
     _map[username] = expr_time;
 }
 
-void AuthList::remove(const std::string & username)
+void AuthList::remove(const std::string &username)
 {
     // Remove the user
     _map.erase(username);
 }
 
-bool AuthList::confirm(const std::string & username)
+bool AuthList::confirm(const std::string &username)
 {
     // Is the user in the map?
     const auto iter = _map.find(username);
 
-    if(iter == _map.end())
+    if (iter == _map.end())
     {
         return false;
     }
@@ -42,7 +42,7 @@ bool AuthList::confirm(const std::string & username)
     // Has the token expired?
     const auto now = std::chrono::system_clock::now();
     const auto expr_time = std::get<1>(*iter);
-    if(now < expr_time)
+    if (now < expr_time)
     {
         return true;
     }

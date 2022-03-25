@@ -41,7 +41,11 @@ if(BUILD_TESTING)
 
     enable_testing()
 
-    add_executable(authorizer_test test/authorizer_test.cpp)
-    target_link_libraries(authorizer_test GTest::gtest_main)
-    gtest_discover_tests(authorizer_test)
+    add_executable(token_test test/token_test.cpp)
+    target_include_directories(token_test PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+    target_link_libraries(token_test utils GTest::gtest_main)
+    gtest_discover_tests(token_test)
 endif()

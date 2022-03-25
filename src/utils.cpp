@@ -18,8 +18,9 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <system_error>
 
-std::optional<std::string> read_key(const std::string & key_file)
+std::optional<std::string> read_key(const std::string &key_file)
 {
     // Read key from file.
     std::ifstream key_stream(key_file, std::ios::binary);
@@ -29,26 +30,34 @@ std::optional<std::string> read_key(const std::string & key_file)
     }
     std::stringstream ss;
     ss << key_stream.rdbuf();
-    return ss.str();
+    const std::string key(ss.str());
+    if (key.empty())
+    {
+        return std::nullopt;
+    }
+
+    return key;
 }
 
 std::tuple<bool, std::chrono::time_point<std::chrono::system_clock>> validate(
-    const std::string & token,
-    const std::string & username,
-    const std::string & pub_key)
+    const std::string &token, const std::string &username, const std::string &pub_key)
 {
+    if (token.empty() or username.empty() or pub_key.empty())
+    {
+        return std::make_tuple(false, std::chrono::system_clock::now());
+    }
+
     const auto decoded_token = jwt::decode(token);
 
-    // Is the token valid?
-    const auto verifier =
-        jwt::verify().allow_algorithm(jwt::algorithm::rs256(pub_key));
     try
     {
+        // Is the token valid?
+        const auto verifier = jwt::verify().allow_algorithm(jwt::algorithm::rs256(pub_key));
         verifier.verify(decoded_token);
     }
-    catch (jwt::error::token_verification_exception & exception)
+    catch (std::system_error &exception)
     {
-        std::cerr << exception.what() << std::endl;
+        std::cerr << "Token Verification Failed: " << exception.what() << std::endl;
         return std::make_tuple(false, std::chrono::system_clock::now());
     }
     auto claims = decoded_token.get_payload_claims();
@@ -71,14 +80,14 @@ std::tuple<bool, std::chrono::time_point<std::chrono::system_clock>> validate(
         std::cerr << "Missing mqtt claim." << std::endl;
         return std::make_tuple(false, std::chrono::system_clock::now());
     }
-    if(not claims["mqtt"].as_bool())
+    if (not(claims["mqtt"].as_string() == "true"))
     {
         std::cerr << "Not claiming can do mqtt." << std::endl;
         return std::make_tuple(false, std::chrono::system_clock::now());
     }
 
     // Do we have an expiration time?
-    if(not claims.contains("exp"))
+    if (not claims.contains("exp"))
     {
         std::cerr << "Missing expiration time claim." << std::endl;
         return std::make_tuple(false, std::chrono::system_clock::now());
@@ -88,16 +97,14 @@ std::tuple<bool, std::chrono::time_point<std::chrono::system_clock>> validate(
 }
 
 std::string gen_token(
-    const std::string & issuer,
-    const std::string & username,
-    const std::string & pub_key,
-    const std::string & priv_key,
-    const std::chrono::time_point<std::chrono::system_clock> & issue_time,
-    const std::chrono::time_point<std::chrono::system_clock> & expr_time)
+    const std::string &username,
+    const std::string &pub_key,
+    const std::string &priv_key,
+    const std::chrono::time_point<std::chrono::system_clock> &issue_time,
+    const std::chrono::time_point<std::chrono::system_clock> &expr_time)
 {
     const auto token = jwt::create()
                            .set_type("JWT")
-                           .set_issuer(issuer)
                            .set_payload_claim("upn", jwt::claim(username))
                            .set_payload_claim("mqtt", jwt::claim(std::string("true")))
                            .set_issued_at(issue_time)

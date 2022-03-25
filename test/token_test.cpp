@@ -12,9 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include <j7s-plugin/utils.h>
+
+#include <ctime>
+#include <iostream>
+
 #include "gtest/gtest.h"
 
-constexpr std::string priv_key_a  =
+const std::string priv_key_a =
     R"(-----BEGIN PRIVATE KEY-----
 MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC+ouwDpYOWDEyM
 nJhwejOn+boDxw4ntiOR3kRzIANuJrbEPf3UJFL+SPPzzY7NU1A6XPz/NAccbvfn
@@ -42,9 +46,8 @@ mnjcxB3ZtRoyFWvfYx9wD3/rV4sMtiIoorNgtJMCgYABDGH571InLE9HMO1+Czmp
 zyvcbTAq8GiN0G4Rok95+THfa726N6BcmkZUK1xWaleO6xNGrDsBghfmgw629Ujk
 UJ73ERYyATbA4GHM9f3dbje8pd2SFa4xF+0Xp09qY380aJrZSWsklBZPUmYiU6+W
 i2MlHfF+44rBO9igkUjQKA==
------END PRIVATE KEY-----)"
-
-constexpr std::string pub_key_a  =
+-----END PRIVATE KEY-----)";
+const std::string pub_key_a =
     R"(-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvqLsA6WDlgxMjJyYcHoz
 p/m6A8cOJ7Yjkd5EcyADbia2xD391CRS/kjz882OzVNQOlz8/zQHHG7353O/HY9d
@@ -54,7 +57,8 @@ m0MrwLnIGkwyp1O9r4jTsaoPL+WxhflrU4ysHs5mLckPGe3aRkGzC9bZExEME6uZ
 9Hfn9zmE+Y53zD0qSiYmDZS6sQiTxozXEkcY880bf3EWM4QD364jv35GBrUHCzQe
 XQIDAQAB
 -----END PUBLIC KEY-----)";
-constexpr std::string priv_key_b  =
+
+const std::string priv_key_b =
     R"(-----BEGIN PRIVATE KEY-----
 MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCYq8QNOXZRoAid
 R7cKE9byr+9WekPMNDNkaKTjRUoXj8lUgno3y5tIDEIqhcv4thTLAxzQD4N+bVA3
@@ -83,7 +87,7 @@ t4/SVFXBRLzse8AB3V6qSEwgCaUfeuj0Qq93nrkTIodHFWXuFoQTgQrA29VWbK6x
 PSwjdVNwYES+Hg+LbXP8Fo+u5sGhcWLzWdmFp3UdUm5Mv76Oo+MriZNnS4RQiX0+
 Y8PiIt3YYCsowmchtEggaQ==
 -----END PRIVATE KEY-----)";
-constexpr std::string pub_key_b  =
+const std::string pub_key_b =
     R"(-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmKvEDTl2UaAInUe3ChPW
 8q/vVnpDzDQzZGik40VKF4/JVIJ6N8ubSAxCKoXL+LYUywMc0A+Dfm1QN1xdWTH5
@@ -94,11 +98,60 @@ wmwOQRQS2h5xR1Z/o6HBIGnzllI67mHMK1HGbgq/DsvCi6s+sOV7Wvwe8dC8sd87
 xwIDAQAB
 -----END PUBLIC KEY-----)";
 
+using time_T = std::chrono::time_point<std::chrono::system_clock>;
 
-// Demonstrate some basic assertions.
-TEST(TokenTest, TwoWay) {
-    constexpr std::string issuer = "james-keycloak";
-    constexpr std::string username = "james";
-    constexpr
-    const auto token = gen_token(
+TEST(TokenTest, SimpleTwoWay)
+{
+    const std::string username = "james";
+    const time_T now = std::chrono::system_clock::now();
+    const time_T expire = now + std::chrono::seconds(1);
+
+    const auto token = gen_token(username, pub_key_a, priv_key_a, now, expire);
+
+    auto [valid, end] = validate(token, username, pub_key_a);
+
+    std::time_t expire_time = std::chrono::system_clock::to_time_t(expire);
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+
+    EXPECT_TRUE(valid);
+    EXPECT_EQ(end_time, expire_time);
+}
+
+TEST(TokenTest, InvalidUsername)
+{
+    const std::string username = "james";
+    const time_T now = std::chrono::system_clock::now();
+    const time_T expire = now + std::chrono::seconds(1);
+    const auto token = gen_token(username, pub_key_a, priv_key_a, now, expire);
+
+    const std::string notjames = "not_james";
+    const auto [valid, end] = validate(token, notjames, pub_key_a);
+
+    EXPECT_FALSE(valid);
+}
+
+TEST(TokenTest, WrongKey)
+{
+    const std::string username = "james";
+    const time_T now = std::chrono::system_clock::now();
+    const time_T expire = now + std::chrono::seconds(1);
+    const auto token = gen_token(username, pub_key_a, priv_key_a, now, expire);
+
+    const auto [valid, end] = validate(token, username, pub_key_b);
+
+    EXPECT_FALSE(valid);
+}
+
+TEST(TokenTest, NonsenseKey)
+{
+    const std::string username = "james";
+    const time_T now = std::chrono::system_clock::now();
+    const time_T expire = now + std::chrono::seconds(1);
+    const auto token = gen_token(username, pub_key_a, priv_key_a, now, expire);
+
+    const std::string nonsenseKey = "lslslslsl";
+
+    const auto [valid, end] = validate(token, username, nonsenseKey);
+
+    EXPECT_FALSE(valid);
 }

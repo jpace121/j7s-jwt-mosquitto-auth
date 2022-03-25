@@ -17,17 +17,14 @@
 #include <string>
 #include <tuple>
 
-std::optional<std::string> read_key(const std::string & key_file);
+std::optional<std::string> read_key(const std::string &key_file);
 
 std::tuple<bool, std::chrono::time_point<std::chrono::system_clock>> validate(
-    const std::string & token,
-    const std::string & username,
-    const std::string & pub_key);
+    const std::string &token, const std::string &username, const std::string &pub_key);
 
 std::string gen_token(
-    const std::string & issuer,
-    const std::string & username,
-    const std::string & pub_key,
-    const std::string & priv_key,
-    const std::chrono::time_point<std::chrono::system_clock> & issue_time,
-    const std::chrono::time_point<std::chrono::system_clock> & expr_time);
+    const std::string &username,
+    const std::string &pub_key,
+    const std::string &priv_key,
+    const std::chrono::time_point<std::chrono::system_clock> &issue_time,
+    const std::chrono::time_point<std::chrono::system_clock> &expr_time);

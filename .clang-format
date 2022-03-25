@@ -16,6 +16,6 @@ ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 DerivePointerAlignment: false
 IndentWidth: 4
-PointerAlignment: Middle
+PointerAlignment: Right
 ReflowComments: false
 ...

@@ -12,20 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include <j7s-plugin/j7s-plugin.h>
-
-#include <j7s-plugin/Authorizer.hpp>
-
 #include <j7s-plugin/utils.h>
 
+#include <filesystem>
+#include <j7s-plugin/Authorizer.hpp>
 #include <memory>
 #include <string>
-#include <filesystem>
 
 // Mosquitto Globals
-static mosquitto_plugin_id_t * plugin_id = nullptr;
+static mosquitto_plugin_id_t *plugin_id = nullptr;
 static std::unique_ptr<Authorizer> authorizer = nullptr;
 
-int mosquitto_plugin_version(int supported_version_count, const int * supported_versions)
+int mosquitto_plugin_version(int supported_version_count, const int *supported_versions)
 {
     for (int index = 0; index < supported_version_count; index++)
     {
@@ -38,9 +36,9 @@ int mosquitto_plugin_version(int supported_version_count, const int * supported_
 }
 
 int mosquitto_plugin_init(
-    mosquitto_plugin_id_t * identifier,
-    void ** userdata,
-    struct mosquitto_opt * options,
+    mosquitto_plugin_id_t *identifier,
+    void **userdata,
+    struct mosquitto_opt *options,
     int option_count)
 {
     plugin_id = identifier;
@@ -93,7 +91,7 @@ int mosquitto_plugin_init(
     return MOSQ_ERR_SUCCESS;
 }
 
-int mosquitto_plugin_cleanup(void * userdata, struct mosquitto_opt * options, int option_count)
+int mosquitto_plugin_cleanup(void *userdata, struct mosquitto_opt *options, int option_count)
 {
     if (plugin_id)
     {
@@ -107,7 +105,7 @@ int mosquitto_plugin_cleanup(void * userdata, struct mosquitto_opt * options, in
     return MOSQ_ERR_SUCCESS;
 }
 
-int j7s_auth_basic_auth_callback(int event, void * event_data, void * userdata)
+int j7s_auth_basic_auth_callback(int event, void *event_data, void *userdata)
 {
     if (not authorizer)
     {
@@ -115,7 +113,7 @@ int j7s_auth_basic_auth_callback(int event, void * event_data, void * userdata)
         return MOSQ_ERR_AUTH;
     }
 
-    struct mosquitto_evt_basic_auth * auth_data =
+    struct mosquitto_evt_basic_auth *auth_data =
         static_cast<struct mosquitto_evt_basic_auth *>(event_data);
 
     if (!auth_data->username)
@@ -142,14 +140,14 @@ int j7s_auth_basic_auth_callback(int event, void * event_data, void * userdata)
     }
 }
 
-int j7s_acl_check_callback(int event, void * event_data, void * userdata)
+int j7s_acl_check_callback(int event, void *event_data, void *userdata)
 {
     if (not authorizer)
     {
         return MOSQ_ERR_ACL_DENIED;
     }
 
-    struct mosquitto_evt_acl_check * acl_data =
+    struct mosquitto_evt_acl_check *acl_data =
         static_cast<struct mosquitto_evt_acl_check *>(event_data);
 
     const std::string username = std::string(mosquitto_client_username(acl_data->client));
@@ -174,9 +172,9 @@ int j7s_acl_check_callback(int event, void * event_data, void * userdata)
     }
 }
 
-int j7s_disconnect_callback(int event, void * event_data, void * userdata)
+int j7s_disconnect_callback(int event, void *event_data, void *userdata)
 {
-    struct mosquitto_evt_disconnect * disconnect_data =
+    struct mosquitto_evt_disconnect *disconnect_data =
         static_cast<struct mosquitto_evt_disconnect *>(event_data);
 
     const std::string username = std::string(mosquitto_client_username(disconnect_data->client));
