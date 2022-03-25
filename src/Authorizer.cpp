@@ -45,7 +45,7 @@ bool Authorizer::add(const std::string &token, const std::string &username)
         return false;
     }
 
-    const auto [validated, expr_time] = validate(token, username, key.value());
+    const bool validated = validate(token, username, key.value());
     if (not validated)
     {
         std::cerr << "Not validated." << std::endl;
@@ -57,11 +57,11 @@ bool Authorizer::add(const std::string &token, const std::string &username)
 
     if (can_read)
     {
-        _readList.add(username, expr_time);
+        _readList.add(username, std::chrono::system_clock::now());
     }
     if (can_write)
     {
-        _writeList.add(username, expr_time);
+        _writeList.add(username, std::chrono::system_clock::now());
     }
 
     return true;
@@ -86,7 +86,7 @@ void Authorizer::logout(const std::string &username)
 
 void Authorizer::add_unknown(const std::string &username)
 {
-    _unknownList.add(username, time_T::max());
+    _unknownList.add(username, std::chrono::system_clock::now());
 }
 
 bool Authorizer::is_unknown(const std::string &username)

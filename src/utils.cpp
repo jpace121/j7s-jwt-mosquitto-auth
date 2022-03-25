@@ -39,12 +39,11 @@ std::optional<std::string> read_key(const std::string &key_file)
     return key;
 }
 
-std::tuple<bool, std::chrono::time_point<std::chrono::system_clock>> validate(
-    const std::string &token, const std::string &username, const std::string &pub_key)
+bool validate(const std::string &token, const std::string &username, const std::string &pub_key)
 {
     if (token.empty() or username.empty() or pub_key.empty())
     {
-        return std::make_tuple(false, std::chrono::system_clock::now());
+        return false;
     }
 
     const auto decoded_token = jwt::decode(token);
@@ -58,7 +57,7 @@ std::tuple<bool, std::chrono::time_point<std::chrono::system_clock>> validate(
     catch (std::system_error &exception)
     {
         std::cerr << "Token Verification Failed: " << exception.what() << std::endl;
-        return std::make_tuple(false, std::chrono::system_clock::now());
+        return false;
     }
     auto claims = decoded_token.get_payload_claims();
 
@@ -66,34 +65,34 @@ std::tuple<bool, std::chrono::time_point<std::chrono::system_clock>> validate(
     if (not claims.contains("upn"))
     {
         std::cerr << "Missing upn." << std::endl;
-        return std::make_tuple(false, std::chrono::system_clock::now());
+        return false;
     }
     if (claims["upn"].as_string() != username)
     {
         std::cerr << "Wrong username." << std::endl;
-        return std::make_tuple(false, std::chrono::system_clock::now());
+        return false;
     }
 
     // Check for mqtt-write claim value.
     if (not claims.contains("mqtt"))
     {
         std::cerr << "Missing mqtt claim." << std::endl;
-        return std::make_tuple(false, std::chrono::system_clock::now());
+        return false;
     }
     if (not(claims["mqtt"].as_string() == "true"))
     {
         std::cerr << "Not claiming can do mqtt." << std::endl;
-        return std::make_tuple(false, std::chrono::system_clock::now());
+        return false;
     }
 
     // Do we have an expiration time?
     if (not claims.contains("exp"))
     {
         std::cerr << "Missing expiration time claim." << std::endl;
-        return std::make_tuple(false, std::chrono::system_clock::now());
+        return false;
     }
 
-    return std::make_tuple(true, claims["exp"].as_date());
+    return true;
 }
 
 std::string gen_token(

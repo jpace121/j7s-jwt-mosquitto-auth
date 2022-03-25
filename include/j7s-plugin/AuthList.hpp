@@ -24,7 +24,7 @@ class AuthList
 public:
     AuthList();
 
-    void add(const std::string& username, const time_T& expr_time);
+    void add(const std::string& username, const time_T& login_time);
     void remove(const std::string& username);
     bool confirm(const std::string& username);
 

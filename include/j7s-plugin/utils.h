@@ -19,8 +19,7 @@
 
 std::optional<std::string> read_key(const std::string &key_file);
 
-std::tuple<bool, std::chrono::time_point<std::chrono::system_clock>> validate(
-    const std::string &token, const std::string &username, const std::string &pub_key);
+bool validate(const std::string &token, const std::string &username, const std::string &pub_key);
 
 std::string gen_token(
     const std::string &username,

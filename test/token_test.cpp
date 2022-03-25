@@ -108,13 +108,9 @@ TEST(TokenTest, SimpleTwoWay)
 
     const auto token = gen_token(username, pub_key_a, priv_key_a, now, expire);
 
-    auto [valid, end] = validate(token, username, pub_key_a);
-
-    std::time_t expire_time = std::chrono::system_clock::to_time_t(expire);
-    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    const bool valid = validate(token, username, pub_key_a);
 
     EXPECT_TRUE(valid);
-    EXPECT_EQ(end_time, expire_time);
 }
 
 TEST(TokenTest, InvalidUsername)
@@ -125,7 +121,7 @@ TEST(TokenTest, InvalidUsername)
     const auto token = gen_token(username, pub_key_a, priv_key_a, now, expire);
 
     const std::string notjames = "not_james";
-    const auto [valid, end] = validate(token, notjames, pub_key_a);
+    const bool valid = validate(token, notjames, pub_key_a);
 
     EXPECT_FALSE(valid);
 }
@@ -137,7 +133,7 @@ TEST(TokenTest, WrongKey)
     const time_T expire = now + std::chrono::seconds(1);
     const auto token = gen_token(username, pub_key_a, priv_key_a, now, expire);
 
-    const auto [valid, end] = validate(token, username, pub_key_b);
+    const bool valid = validate(token, username, pub_key_b);
 
     EXPECT_FALSE(valid);
 }
@@ -151,7 +147,7 @@ TEST(TokenTest, NonsenseKey)
 
     const std::string nonsenseKey = "lslslslsl";
 
-    const auto [valid, end] = validate(token, username, nonsenseKey);
+    const bool valid = validate(token, username, nonsenseKey);
 
     EXPECT_FALSE(valid);
 }
