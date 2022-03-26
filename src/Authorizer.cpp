@@ -25,7 +25,7 @@ std::optional<std::string> getKey(const std::string &user, const YAML::Node &key
 
 // Class implementation.
 Authorizer::Authorizer(const std::string &keyFilePath, const std::string &aclFilePath) :
-    _keyFile{keyFilePath}, _aclFile{aclFilePath}
+    _keyFile{YAML::LoadFile(keyFilePath)}, _aclFile{YAML::LoadFile(aclFilePath)}
 {
 }
 
@@ -98,6 +98,7 @@ bool Authorizer::is_unknown(const std::string &username)
 std::tuple<bool, bool> checkACL(const std::string &user, const YAML::Node &aclFile)
 {
     // TODO: Make sure default exists.
+
     YAML::Node userDict;
     if (aclFile[user])
     {

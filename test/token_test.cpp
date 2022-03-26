@@ -13,7 +13,6 @@
 // limitations under the License.
 #include <j7s-plugin/utils.h>
 
-#include <ctime>
 #include <iostream>
 
 #include "gtest/gtest.h"

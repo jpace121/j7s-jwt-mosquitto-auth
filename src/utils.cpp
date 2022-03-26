@@ -61,34 +61,42 @@ bool validate(const std::string &token, const std::string &username, const std::
     }
     auto claims = decoded_token.get_payload_claims();
 
-    // Check username matches.
-    if (not claims.contains("upn"))
+    try
     {
-        std::cerr << "Missing upn." << std::endl;
-        return false;
-    }
-    if (claims["upn"].as_string() != username)
-    {
-        std::cerr << "Wrong username." << std::endl;
-        return false;
-    }
+        // Check username matches.
+        if (not claims.contains("upn"))
+        {
+            std::cerr << "Missing upn." << std::endl;
+            return false;
+        }
+        if (claims["upn"].as_string() != username)
+        {
+            std::cerr << "Wrong username." << std::endl;
+            return false;
+        }
 
-    // Check for mqtt-write claim value.
-    if (not claims.contains("mqtt"))
-    {
-        std::cerr << "Missing mqtt claim." << std::endl;
-        return false;
-    }
-    if (not(claims["mqtt"].as_string() == "true"))
-    {
-        std::cerr << "Not claiming can do mqtt." << std::endl;
-        return false;
-    }
+        // Check for mqtt-write claim value.
+        if (not claims.contains("mqtt"))
+        {
+            std::cerr << "Missing mqtt claim." << std::endl;
+            return false;
+        }
+        if (not(claims["mqtt"].as_bool()))
+        {
+            std::cerr << "Not claiming can do mqtt." << std::endl;
+            return false;
+        }
 
-    // Do we have an expiration time?
-    if (not claims.contains("exp"))
+        // Do we have an expiration time?
+        if (not claims.contains("exp"))
+        {
+            std::cerr << "Missing expiration time claim." << std::endl;
+            return false;
+        }
+    }
+    catch(const std::bad_cast& exception)
     {
-        std::cerr << "Missing expiration time claim." << std::endl;
+        std::cerr << "Failed to parse claims. Reason: " << exception.what()  << std::endl;
         return false;
     }
 
@@ -105,7 +113,7 @@ std::string gen_token(
     const auto token = jwt::create()
                            .set_type("JWT")
                            .set_payload_claim("upn", jwt::claim(username))
-                           .set_payload_claim("mqtt", jwt::claim(std::string("true")))
+                           .set_payload_claim("mqtt", jwt::claim(picojson::value(true)))
                            .set_issued_at(issue_time)
                            .set_expires_at(expr_time)
                            .sign(jwt::algorithm::rs256(pub_key, priv_key, "", ""));
