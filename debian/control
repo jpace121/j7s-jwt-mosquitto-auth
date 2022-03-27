@@ -1,0 +1,14 @@
+Source: j7s-mosquitto-plugin
+Maintainer: James Pace <jpace121@gmail.com>
+Build-Depends: cmake, dh-cmake, dh-cmake-compat (= 1), dh-sequence-cmake, debhelper-compat (= 12),
+ mosquitto-dev, libmosquitto-dev, libssl-dev, libyaml-cpp-dev
+Standards-Version: 4.1.5
+Homepage: https://github.com/jpace121/j7s-jwt-mosquitto-auth
+Section: misc
+Priority: optional
+
+Package: j7s-mosquitto-plugin
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Authentication plugin for mosquitto for the j7s project.
+ Authentication plugin for mosquitto for the j7s project.
