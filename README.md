@@ -9,8 +9,8 @@ sudo apt install mosquitto-dev g++ cmake libmosquitto-dev mosquitto-clients open
 
 ## Generating offline keys
 ```
-openssl genpkey -algorithm RSA -out rsa_private.pem -pkeyopt rsa_keygen_bits:2048
-openssl rsa -in rsa_private.pem -pubout -out rsa_public.pem
+openssl ecparam -genkey -name prime256v1 -noout -out ec_private.pem
+openssl ec -in ec_private.pem -pubout -out ec_public.pem
 ```
 
 ## Converting Client Keys to Format for Browser

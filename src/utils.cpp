@@ -51,7 +51,7 @@ bool validate(const std::string &token, const std::string &username, const std::
     try
     {
         // Is the token valid?
-        const auto verifier = jwt::verify().allow_algorithm(jwt::algorithm::rs256(pub_key));
+        const auto verifier = jwt::verify().allow_algorithm(jwt::algorithm::es256(pub_key));
         verifier.verify(decoded_token);
     }
     catch (std::system_error &exception)
@@ -116,7 +116,7 @@ std::string gen_token(
                            .set_payload_claim("mqtt", jwt::claim(picojson::value(true)))
                            .set_issued_at(issue_time)
                            .set_expires_at(expr_time)
-                           .sign(jwt::algorithm::rs256(pub_key, priv_key, "", ""));
+                           .sign(jwt::algorithm::es256(pub_key, priv_key, "", ""));
 
     return token;
 }
