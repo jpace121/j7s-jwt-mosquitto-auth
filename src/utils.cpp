@@ -56,7 +56,6 @@ bool validate(const std::string &token, const std::string &username, const std::
     }
     catch (std::system_error &exception)
     {
-        std::cerr << "Token Verification Failed: " << exception.what() << std::endl;
         return false;
     }
     auto claims = decoded_token.get_payload_claims();

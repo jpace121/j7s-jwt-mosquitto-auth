@@ -31,9 +31,10 @@ token = r.json()['access_token']
 print(token)
 
 client = paho.mqtt.client.Client(protocol=paho.mqtt.client.MQTTv5,
-                                 transport="tcp")
+                                 transport="websockets")
 client.username_pw_set("jimmy", password=token)
-client.connect("localhost", port=8081)
+client.tls_set()
+client.connect("mqtt.jpace121.net", port=443)
 
 print("Waiting on connection.")
 time.sleep(20)

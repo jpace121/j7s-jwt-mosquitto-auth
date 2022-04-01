@@ -1,1 +1,3 @@
-default: /home/jimmy/Develop/mosquitto-plugin/examples/key.pem
+default:
+ - /home/jimmy/Develop/mosquitto-plugin/examples/key.pem
+ - /home/jimmy/Develop/mosquitto-plugin/examples/service-key.pem

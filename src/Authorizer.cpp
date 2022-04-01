@@ -18,10 +18,11 @@
 #include <j7s-plugin/AuthList.hpp>
 #include <j7s-plugin/Authorizer.hpp>
 #include <tuple>
+#include <vector>
 
 // Util.
 std::tuple<bool, bool> checkACL(const std::string &user, const YAML::Node &aclFile);
-std::optional<std::string> getKey(const std::string &user, const YAML::Node &keyFile);
+std::vector<std::string> getKey(const std::string &user, const YAML::Node &keyFile);
 
 // Class implementation.
 Authorizer::Authorizer(const std::string &keyFilePath, const std::string &aclFilePath) :
@@ -37,15 +38,21 @@ bool Authorizer::add(const std::string &token, const std::string &username)
         return false;
     }
 
-    const auto key = getKey(username, _keyFile);
+    const auto keys = getKey(username, _keyFile);
 
-    if (not key)
-    {
-        std::cerr << "Could not read key for user." << std::endl;
+    // Do any of the keys validate the token?
+    const bool validated = [token, username, keys]() {
+        for (const auto key : keys)
+        {
+            std::cout << "Trying..." << std::endl;
+            if (validate(token, username, key))
+            {
+                return true;
+            }
+        }
         return false;
-    }
+    }();
 
-    const bool validated = validate(token, username, key.value());
     if (not validated)
     {
         std::cerr << "Not validated." << std::endl;
@@ -123,18 +130,45 @@ std::tuple<bool, bool> checkACL(const std::string &user, const YAML::Node &aclFi
     return std::make_tuple(can_read, can_write);
 }
 
-std::optional<std::string> getKey(const std::string &user, const YAML::Node &keyFile)
+std::vector<std::string> getKey(const std::string &user, const YAML::Node &keyFile)
 {
-    // TODO: Make sure default exists.
-    std::filesystem::path pathToKey;
-    if (keyFile[user])
+
+    // Find this user's entry or the default one.
+    YAML::Node userKey;
+    if(keyFile[user])
     {
-        pathToKey = std::filesystem::path(keyFile[user].as<std::string>());
+        userKey = keyFile[user];
     }
     else
     {
-        pathToKey = std::filesystem::path(keyFile["default"].as<std::string>());
+        // TODO: Make sure default exists.
+        userKey = keyFile["default"];
     }
 
-    return read_key(std::filesystem::absolute(pathToKey).string());
+    // Get the paths from the yaml file as std::filesystem::paths.
+    std::vector<std::filesystem::path> paths;
+    if(not userKey.IsSequence())
+    {
+        paths.emplace_back(userKey.as<std::string>());
+    }
+    else
+    {
+        for(const auto key : userKey)
+        {
+            paths.emplace_back(key.as<std::string>());
+        }
+    }
+
+    // Now convert to an array of optional keys.
+    std::vector<std::string> keys;
+    for(const auto path : paths)
+    {
+        const auto key = read_key(std::filesystem::absolute(path).string());
+        if(key)
+        {
+            keys.emplace_back(key.value());
+        }
+    }
+
+    return keys;
 }
