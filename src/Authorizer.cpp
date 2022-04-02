@@ -44,7 +44,6 @@ bool Authorizer::add(const std::string &token, const std::string &username)
     const bool validated = [token, username, keys]() {
         for (const auto key : keys)
         {
-            std::cout << "Trying..." << std::endl;
             if (validate(token, username, key))
             {
                 return true;
