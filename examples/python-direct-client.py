@@ -21,7 +21,9 @@ token = r.json()['access_token']
 client = paho.mqtt.client.Client(protocol=paho.mqtt.client.MQTTv5,
                                  transport="tcp")
 client.username_pw_set("j7s-1", password=token)
-client.connect("localhost", port=8081)
+client.tls_set(certfile="/home/jimmy/Develop/keycloak/jimmy-client.pem",
+               keyfile="/home/jimmy/Develop/keycloak/jimmy-client-key.pem")
+client.connect("mqtt.jpace121.net", port=8883)
 
 print("Waiting on connection.")
 time.sleep(5)
