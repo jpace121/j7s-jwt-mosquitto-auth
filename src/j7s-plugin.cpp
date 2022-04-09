@@ -158,24 +158,18 @@ int j7s_acl_check_callback(int event, void *event_data, void *userdata)
         return MOSQ_ERR_PLUGIN_DEFER;
     }
 
-    bool success = false;
     switch (acl_data->access)
     {
         case MOSQ_ACL_SUBSCRIBE:
-            mosquitto_log_printf(MOSQ_LOG_ERR, "ACL callback subscribe defer.");
-            return MOSQ_ERR_PLUGIN_DEFER;
+            return (authorizer->can_read(username) ? MOSQ_ERR_SUCCESS : MOSQ_ERR_ACL_DENIED);
         case MOSQ_ACL_UNSUBSCRIBE:
-            mosquitto_log_printf(MOSQ_LOG_ERR, "ACL callback unsubscribe defer.");
-            return MOSQ_ERR_PLUGIN_DEFER;
+            return MOSQ_ERR_SUCCESS;
         case MOSQ_ACL_WRITE:
-            success = authorizer->can_write(username);
-            mosquitto_log_printf(MOSQ_LOG_ERR, "ACL callback %s can write? %d", username.c_str(), success);
             return (authorizer->can_write(username) ? MOSQ_ERR_SUCCESS : MOSQ_ERR_ACL_DENIED);
         case MOSQ_ACL_READ:
-            success = authorizer->can_read(username);
-            mosquitto_log_printf(MOSQ_LOG_ERR, "ACL callback %s can read? %d", username.c_str(), success);
             return (authorizer->can_read(username) ? MOSQ_ERR_SUCCESS : MOSQ_ERR_ACL_DENIED);
         default:
+            mosquitto_log_printf(MOSQ_LOG_ERR, "Unhandled ACL check for user: %s", username.c_str());
             return MOSQ_ERR_ACL_DENIED;
     }
 }

@@ -1,4 +1,4 @@
-j7s-mosquitto-plugin (0.0.3-1) unstable; urgency=medium
+j7s-mosquitto-plugin (0.0.6-1) unstable; urgency=medium
 
   * Load multiple keys per user.
 
