@@ -119,3 +119,15 @@ std::string gen_token(
 
     return token;
 }
+
+std::string toString(const char* c_str)
+{
+    if(c_str)
+    {
+        return std::string(c_str);
+    }
+    else
+    {
+        return std::string();
+    }
+}

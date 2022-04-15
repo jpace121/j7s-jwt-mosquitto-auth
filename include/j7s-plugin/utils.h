@@ -27,3 +27,5 @@ std::string gen_token(
     const std::string &priv_key,
     const std::chrono::time_point<std::chrono::system_clock> &issue_time,
     const std::chrono::time_point<std::chrono::system_clock> &expr_time);
+
+std::string toString(const char* c_str);
