@@ -1,5 +1,5 @@
-j7s-mosquitto-plugin (0.0.7-1) unstable; urgency=medium
+j7s-mosquitto-plugin (0.0.7-1) stable; urgency=medium
 
   * New release.
 
- -- James Pace <jpace121@gmail.com>  Fri, 15 Apr 2022 01:53:50 +0000
+ -- James Pace <jpace121@gmail.com>  Tues, 09 August 2022 01:53:50 +0000

@@ -1,0 +1,124 @@
+---
+- name: Setup container for building.
+  hosts: localhost
+  tasks:
+    - name: Create a container
+      containers.podman.podman_container:
+        name: j7s-mosquitto-debian-builder
+        image: docker.io/library/debian:bullseye
+        volume: "{{ playbook_dir }}/..:/work/src:Z"
+        command: 'sleep infinity'
+        state: started
+    - name: Add the container to inventory.
+      ansible.builtin.add_host:
+        name: j7s-mosquitto-debian-builder
+        ansible_connection: containers.podman.podman
+        ansible_user: root
+        ansible_python_interpreter: /usr/bin/python3
+        changed_when: false
+    - name: Set the container up for normal ansible stuff.
+      delegate_to: j7s-mosquitto-debian-builder
+      raw: bash -c "apt update && apt install -y python3"
+
+- name: Setup build environment.
+  hosts: j7s-mosquitto-debian-builder
+  become: true
+  tasks:
+  - name: Update cache
+    ansible.builtin.apt:
+      update_cache: true
+  - name: Install build dependencies.
+    ansible.builtin.apt:
+       package:
+        - build-essential
+        - cmake
+        - dh-cmake
+        - mosquitto-dev
+        - libmosquitto-dev
+        - libssl-dev
+        - libyaml-cpp-dev
+        - fakeroot
+        - devscripts
+        - debhelper
+       state: latest
+
+- name: Build package.
+  hosts: j7s-mosquitto-debian-builder
+  tasks:
+  - name: Call debuild.
+    ansible.builtin.shell:
+       chdir: "/work/src"
+       cmd: ls && debuild -us -uc -b
+  - name: Copy deb file back to the main directory.
+    ansible.builtin.shell:
+      cmd: "cp -r  /work/*.deb /work/src/."
+  - name: Copy changes file back to the main directory.
+    ansible.builtin.shell:
+      cmd: "cp -r  /work/*.changes /work/src/."
+  - name: Copy buildinfo file back to the main directory.
+    ansible.builtin.shell:
+      cmd: "cp -r  /work/*.buildinfo /work/src/."
+
+- name: Upload to packaging server.
+  hosts: packaging
+  tags: deploy
+  tasks:
+    - name: Copy package to packaging server.
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: ~/public/apt/mini-dinstall/incoming/
+      with_fileglob: ../j7s-*.deb
+      register: copied_files
+    - name: Fail if we didn't copy exactly two files. (debug and normal)
+      ansible.builtin.fail:
+        msg: "Didn't find exactly two deb file."
+      when: copied_files.results | length != 2
+    - name: Ditto the changes file.
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: ~/public/apt/mini-dinstall/incoming/
+      with_fileglob: ../j7s-*.changes
+      register: copied_changes
+    - name: Fail if we didn't copy exactly one file.
+      ansible.builtin.fail:
+        msg: "Didn't find exactly one changes file."
+      when: copied_changes.results | length != 1
+    - name: Ditto the buildinfo file.
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: ~/public/apt/mini-dinstall/incoming/
+      with_fileglob: ../j7s-*.buildinfo
+      register: copied_buildinfo
+    - name: Fail if we didn't copy exactly one file.
+      ansible.builtin.fail:
+        msg: "Didn't find exactly one buildinfo file."
+      when: copied_buildinfo.results | length != 1
+    - name: Run mini-dinstall.
+      ansible.builtin.shell:
+        cmd: "mini-dinstall --batch"
+    - name: wait dinstall to do its thing
+      ansible.builtin.pause:
+         seconds: 3
+
+- name: Build and push image.
+  hosts: localhost
+  tags: deploy
+  tasks:
+    - name: Build and push image.
+      containers.podman.podman_image:
+        name: j7s-mosquitto
+        tag: latest
+        force: true
+        path: ..
+        push: yes
+        push_args:
+            dest: registry.jpace121.net
+
+- name: Cleanup
+  hosts: localhost
+  tags: cleanup
+  tasks:
+    - name: Stop the container.
+      containers.podman.podman_container:
+        name: j7s-mosquitto-debian-builder
+        state: absent

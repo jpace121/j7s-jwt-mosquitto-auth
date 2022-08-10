@@ -8,7 +8,7 @@ Section: misc
 Priority: optional
 
 Package: j7s-mosquitto-plugin
-Architecture: any
+Architecture: amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Authentication plugin for mosquitto for the j7s project.
  Authentication plugin for mosquitto for the j7s project.
